@@ -1,0 +1,451 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>LyricPresence</title>
+  <style>
+    *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+    :root {
+      --bg: #0b0b10;
+      --surface: #14141c;
+      --surface2: #1e1e28;
+      --border: #2c2c3e;
+      --text: #eeeef5;
+      --muted: #7070a0;
+      --green: #1db954;
+      --blurple: #5865f2;
+    }
+    body {
+      background: var(--bg);
+      color: var(--text);
+      font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif;
+      min-height: 100vh;
+    }
+
+    nav {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      padding: 20px 48px;
+      border-bottom: 1px solid var(--border);
+    }
+    .logo {
+      font-size: 17px;
+      font-weight: 700;
+      color: var(--text);
+      text-decoration: none;
+      display: flex;
+      align-items: center;
+      gap: 8px;
+    }
+    .logo-dot {
+      width: 10px; height: 10px;
+      border-radius: 50%;
+      background: linear-gradient(135deg, var(--green), var(--blurple));
+    }
+    .nav-links { display: flex; gap: 8px; }
+    .nav-links a {
+      color: var(--muted);
+      text-decoration: none;
+      font-size: 14px;
+      padding: 6px 14px;
+      border-radius: 6px;
+      transition: background 0.15s, color 0.15s;
+    }
+    .nav-links a:hover { background: var(--surface2); color: var(--text); }
+
+    .hero {
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      text-align: center;
+      padding: 100px 24px 80px;
+    }
+    .pill {
+      display: inline-flex;
+      align-items: center;
+      gap: 6px;
+      font-size: 12px;
+      color: var(--muted);
+      background: var(--surface);
+      border: 1px solid var(--border);
+      border-radius: 100px;
+      padding: 5px 14px;
+      margin-bottom: 32px;
+      letter-spacing: 0.5px;
+    }
+    .pill-dot {
+      width: 6px; height: 6px;
+      border-radius: 50%;
+      background: var(--green);
+    }
+    h1 {
+      font-size: clamp(40px, 6vw, 72px);
+      font-weight: 800;
+      letter-spacing: -2.5px;
+      line-height: 1.06;
+      color: #fff;
+      margin-bottom: 20px;
+      max-width: 700px;
+    }
+    h1 em { font-style: normal; color: var(--green); }
+    .hero-sub {
+      font-size: 18px;
+      color: var(--muted);
+      max-width: 460px;
+      line-height: 1.7;
+      margin-bottom: 52px;
+    }
+
+    /* demo card */
+    .demo {
+      background: var(--surface);
+      border: 1px solid var(--border);
+      border-radius: 16px;
+      padding: 20px 22px;
+      width: 360px;
+      text-align: left;
+      margin-bottom: 72px;
+    }
+    .demo-header {
+      display: flex;
+      align-items: center;
+      gap: 12px;
+      margin-bottom: 16px;
+    }
+    .demo-thumb {
+      width: 42px; height: 42px;
+      border-radius: 6px;
+      background: linear-gradient(135deg, var(--green) 0%, var(--blurple) 100%);
+      flex-shrink: 0;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+    }
+    .demo-thumb svg { width: 18px; height: 18px; fill: #fff; }
+    .demo-track { font-size: 13px; font-weight: 600; color: #fff; }
+    .demo-artist { font-size: 11px; color: var(--muted); margin-top: 2px; }
+    .demo-lyric {
+      font-size: 15px;
+      font-weight: 500;
+      color: #fff;
+      padding: 10px 14px;
+      background: var(--surface2);
+      border-radius: 8px;
+      border-left: 3px solid var(--green);
+      min-height: 42px;
+      display: flex;
+      align-items: center;
+    }
+    .demo-footer {
+      margin-top: 12px;
+      display: flex;
+      align-items: center;
+      gap: 7px;
+      font-size: 11px;
+      color: var(--muted);
+    }
+    .discord-badge {
+      width: 7px; height: 7px;
+      border-radius: 50%;
+      background: var(--blurple);
+    }
+
+    /* platform cards */
+    .section-label {
+      font-size: 11px;
+      font-weight: 700;
+      letter-spacing: 2px;
+      text-transform: uppercase;
+      color: var(--muted);
+      text-align: center;
+      margin-bottom: 14px;
+    }
+    h2 {
+      font-size: 32px;
+      font-weight: 800;
+      letter-spacing: -1px;
+      text-align: center;
+      margin-bottom: 48px;
+    }
+    .platform-grid {
+      display: grid;
+      grid-template-columns: repeat(3, 1fr);
+      gap: 20px;
+      max-width: 900px;
+      margin: 0 auto;
+      padding: 0 24px 80px;
+    }
+    .pcard {
+      background: var(--surface);
+      border: 1px solid var(--border);
+      border-radius: 14px;
+      padding: 28px 24px 24px;
+      text-decoration: none;
+      color: inherit;
+      display: flex;
+      flex-direction: column;
+      gap: 0;
+      transition: border-color 0.2s, transform 0.2s;
+    }
+    .pcard:hover {
+      border-color: #4040604;
+      transform: translateY(-3px);
+      border-color: #44446a;
+    }
+    .pcard-icon {
+      width: 44px; height: 44px;
+      border-radius: 10px;
+      background: var(--surface2);
+      border: 1px solid var(--border);
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      margin-bottom: 16px;
+    }
+    .pcard-icon svg { width: 22px; height: 22px; }
+    .pcard h3 { font-size: 17px; font-weight: 700; margin-bottom: 6px; }
+    .pcard-req { font-size: 12px; color: var(--muted); margin-bottom: 16px; }
+    .pcard-features { list-style: none; display: flex; flex-direction: column; gap: 8px; }
+    .pcard-features li {
+      font-size: 13px;
+      color: var(--muted);
+      display: flex;
+      align-items: flex-start;
+      gap: 8px;
+      line-height: 1.4;
+    }
+    .pcard-features li::before {
+      content: "";
+      width: 5px; height: 5px;
+      border-radius: 50%;
+      background: var(--green);
+      flex-shrink: 0;
+      margin-top: 5px;
+    }
+    .pcard-cta {
+      margin-top: 20px;
+      padding-top: 16px;
+      border-top: 1px solid var(--border);
+      font-size: 13px;
+      font-weight: 600;
+      color: var(--blurple);
+      display: flex;
+      align-items: center;
+      gap: 6px;
+    }
+
+    /* how it works */
+    .hiw { max-width: 900px; margin: 0 auto; padding: 0 24px 80px; }
+    .hiw h2 { margin-bottom: 40px; }
+    .steps {
+      display: grid;
+      grid-template-columns: repeat(4, 1fr);
+      gap: 16px;
+    }
+    .step {
+      background: var(--surface);
+      border: 1px solid var(--border);
+      border-radius: 12px;
+      padding: 22px 20px;
+    }
+    .step-n {
+      width: 28px; height: 28px;
+      background: linear-gradient(135deg, var(--green), var(--blurple));
+      border-radius: 7px;
+      font-size: 12px;
+      font-weight: 800;
+      color: #fff;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      margin-bottom: 12px;
+    }
+    .step h4 { font-size: 14px; font-weight: 700; margin-bottom: 6px; }
+    .step p { font-size: 12px; color: var(--muted); line-height: 1.6; }
+
+    footer {
+      border-top: 1px solid var(--border);
+      padding: 28px 48px;
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+    }
+    footer p { font-size: 13px; color: var(--muted); }
+    footer a { color: var(--muted); text-decoration: none; }
+    footer a:hover { color: var(--text); }
+
+    @keyframes swap { from { opacity: 0; transform: translateY(5px); } to { opacity: 1; transform: none; } }
+    .lyric-in { animation: swap 0.35s ease forwards; }
+
+    @media (max-width: 760px) {
+      nav { padding: 16px 20px; }
+      .platform-grid { grid-template-columns: 1fr; }
+      .steps { grid-template-columns: 1fr 1fr; }
+      footer { flex-direction: column; gap: 8px; text-align: center; }
+    }
+  </style>
+</head>
+<body>
+
+<nav>
+  <a class="logo" href="/lyricpresence/">
+    <div class="logo-dot"></div>
+    LyricPresence
+  </a>
+  <div class="nav-links">
+    <a href="/lyricpresence/ios/">iOS</a>
+    <a href="/lyricpresence/windows/">Windows</a>
+    <a href="/lyricpresence/macos/">macOS</a>
+    <a href="https://github.com/milo-exe/LyricPresence">GitHub</a>
+  </div>
+</nav>
+
+<section class="hero">
+  <div class="pill"><div class="pill-dot"></div> Spotify + Discord</div>
+  <h1>Your lyrics, live on <em>Discord.</em></h1>
+  <p class="hero-sub">LyricPresence shows your current Spotify lyrics as your Discord custom status — line by line, in real time.</p>
+
+  <div class="demo">
+    <div class="demo-header">
+      <div class="demo-thumb">
+        <svg viewBox="0 0 24 24"><path d="M12 3v10.55A4 4 0 1 0 14 17V7h4V3h-6z"/></svg>
+      </div>
+      <div>
+        <div class="demo-track" id="dTrack">—</div>
+        <div class="demo-artist" id="dArtist"></div>
+      </div>
+    </div>
+    <div class="demo-lyric" id="dLyric"></div>
+    <div class="demo-footer">
+      <div class="discord-badge"></div>
+      Live on your Discord status
+    </div>
+  </div>
+
+  <div class="section-label">Available on</div>
+  <h2>Pick your platform.</h2>
+</section>
+
+<div class="platform-grid">
+  <a class="pcard" href="/lyricpresence/ios/">
+    <div class="pcard-icon">
+      <svg viewBox="0 0 24 24" fill="none" stroke="#eeeef5" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round">
+        <rect x="7" y="2" width="10" height="20" rx="2.5"/>
+        <circle cx="12" cy="17.5" r="0.8" fill="#eeeef5" stroke="none"/>
+      </svg>
+    </div>
+    <h3>iOS</h3>
+    <div class="pcard-req">iPhone · iOS 16+</div>
+    <ul class="pcard-features">
+      <li>Runs fully in the background</li>
+      <li>Silent audio keep-alive</li>
+      <li>IPA sideload install</li>
+      <li>GitHub Actions build</li>
+    </ul>
+    <div class="pcard-cta">View iOS guide &rarr;</div>
+  </a>
+
+  <a class="pcard" href="/lyricpresence/windows/">
+    <div class="pcard-icon">
+      <svg viewBox="0 0 24 24" fill="#eeeef5">
+        <path d="M3 5.5L11 4v7H3V5.5zM12 4l9-1.5V11h-9V4zM3 12h8v7L3 17.5V12zM12 12h9v7.5L12 20V12z"/>
+      </svg>
+    </div>
+    <h3>Windows</h3>
+    <div class="pcard-req">Windows 10 / 11</div>
+    <ul class="pcard-features">
+      <li>Runs in the system tray</li>
+      <li>Lightweight background process</li>
+      <li>No installer required</li>
+    </ul>
+    <div class="pcard-cta">View Windows guide &rarr;</div>
+  </a>
+
+  <a class="pcard" href="/lyricpresence/macos/">
+    <div class="pcard-icon">
+      <svg viewBox="0 0 24 24" fill="none" stroke="#eeeef5" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round">
+        <rect x="2" y="4" width="20" height="13" rx="2"/>
+        <path d="M8 21h8M12 17v4"/>
+      </svg>
+    </div>
+    <h3>macOS</h3>
+    <div class="pcard-req">macOS 13 Ventura+ · Intel &amp; Apple Silicon</div>
+    <ul class="pcard-features">
+      <li>Menu bar app — no dock icon</li>
+      <li>Current lyric in the menu bar</li>
+      <li>Build locally with Xcode</li>
+    </ul>
+    <div class="pcard-cta">View macOS guide &rarr;</div>
+  </a>
+</div>
+
+<div class="hiw">
+  <div class="section-label">Under the hood</div>
+  <h2>How it works.</h2>
+  <div class="steps">
+    <div class="step">
+      <div class="step-n">1</div>
+      <h4>Spotify Web API</h4>
+      <p>Polls your currently playing track using your own Spotify Client ID and OAuth token.</p>
+    </div>
+    <div class="step">
+      <div class="step-n">2</div>
+      <h4>LRCLIB Lyrics</h4>
+      <p>Fetches free, time-synced lyrics from LRCLIB — a community-maintained open database.</p>
+    </div>
+    <div class="step">
+      <div class="step-n">3</div>
+      <h4>Line-by-line sync</h4>
+      <p>Displays the correct lyric line at the exact millisecond, matching the Spotify playback position.</p>
+    </div>
+    <div class="step">
+      <div class="step-n">4</div>
+      <h4>Discord Status</h4>
+      <p>Pushes each line to your Discord custom status using your account token.</p>
+    </div>
+  </div>
+</div>
+
+<footer>
+  <p>LyricPresence &mdash; a port of <a href="https://github.com/milo-exe/LyricPresence">milo-exe/LyricPresence</a></p>
+  <p>Lyrics by <a href="https://lrclib.net">LRCLIB</a></p>
+</footer>
+
+<script>
+  const songs = [
+    { track: "Blinding Lights", artist: "The Weeknd", lyrics: [
+      "I said, ooh, I'm blinded by the lights",
+      "No, I can't sleep until I feel your touch"
+    ]},
+    { track: "As It Was", artist: "Harry Styles", lyrics: [
+      "In this world, it's just us",
+      "You know it's not the same as it was"
+    ]},
+    { track: "Anti-Hero", artist: "Taylor Swift", lyrics: [
+      "It's me, hi, I'm the problem, it's me",
+      "I'll stare directly at the sun but never in the mirror"
+    ]},
+  ];
+  let si = 0, li = 0;
+  const dTrack = document.getElementById("dTrack");
+  const dArtist = document.getElementById("dArtist");
+  const dLyric = document.getElementById("dLyric");
+
+  function tick() {
+    const song = songs[si % songs.length];
+    dTrack.textContent = song.track;
+    dArtist.textContent = song.artist;
+    dLyric.textContent = song.lyrics[li % song.lyrics.length];
+    dLyric.classList.remove("lyric-in");
+    void dLyric.offsetWidth;
+    dLyric.classList.add("lyric-in");
+    li++;
+    if (li >= song.lyrics.length) { li = 0; si++; }
+  }
+  tick();
+  setInterval(tick, 2800);
+</script>
+</body>
+</html>
