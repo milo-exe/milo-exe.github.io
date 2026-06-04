@@ -357,6 +357,29 @@
       white-space: nowrap;
     }
 
+    /* live clock */
+    .live-clock {
+      position: fixed;
+      top: 24px;
+      right: 28px;
+      z-index: 20;
+      font-size: 12px;
+      color: rgba(255,255,255,0.28);
+      letter-spacing: 0.06em;
+      font-variant-numeric: tabular-nums;
+      pointer-events: none;
+    }
+
+    /* visitor counter milestone glow */
+    .visitor-counter.milestone {
+      color: rgba(255,255,255,0.55);
+      animation: counter-glow 2.5s ease-in-out infinite;
+    }
+    @keyframes counter-glow {
+      0%,100% { text-shadow: none; opacity: 0.55; }
+      50% { text-shadow: 0 0 10px rgba(255,255,255,0.4); opacity: 1; }
+    }
+
     /* now playing widget */
     .now-playing {
       position: fixed;
@@ -364,8 +387,8 @@
       right: 24px;
       z-index: 20;
       display: none;
-      align-items: center;
-      gap: 10px;
+      flex-direction: column;
+      gap: 8px;
       background: rgba(255,255,255,0.06);
       border: 1px solid rgba(255,255,255,0.1);
       border-radius: 14px;
@@ -376,6 +399,7 @@
       transition: background 0.15s;
     }
     .now-playing:hover { background: rgba(255,255,255,0.1); }
+    .np-main { display: flex; align-items: center; gap: 10px; }
     .np-art {
       width: 38px;
       height: 38px;
@@ -409,6 +433,19 @@
       white-space: nowrap;
       overflow: hidden;
       text-overflow: ellipsis;
+    }
+    .np-progress-wrap {
+      width: 100%;
+      height: 2px;
+      background: rgba(255,255,255,0.1);
+      border-radius: 1px;
+      overflow: hidden;
+    }
+    .np-progress-bar {
+      height: 100%;
+      width: 0%;
+      background: #1DB954;
+      border-radius: 1px;
     }
   </style>
 </head>
@@ -520,16 +557,24 @@
 
 <!-- now playing widget -->
 <a class="now-playing" id="nowPlaying" href="#" target="_blank" rel="noopener">
-  <img class="np-art" id="npArt" src="" alt="">
-  <div class="np-text">
-    <div class="np-label">
-      <svg viewBox="0 0 24 24"><path d="M12 2C6.477 2 2 6.477 2 12s4.477 10 10 10 10-4.477 10-10S17.523 2 12 2zm4.586 14.424a.622.622 0 0 1-.856.207 10.354 10.354 0 0 0-5.23-1.407 10.36 10.36 0 0 0-3.679.672.622.622 0 1 1-.44-1.163 11.607 11.607 0 0 1 4.119-.753c2.105 0 4.073.57 5.879 1.588a.622.622 0 0 1 .207.856zm1.224-2.724a.78.78 0 0 1-1.07.26 12.942 12.942 0 0 0-6.54-1.76 12.94 12.94 0 0 0-4.61.843.78.78 0 0 1-.55-1.457 14.5 14.5 0 0 1 5.16-.944c2.587 0 5.01.703 7.35 1.987a.78.78 0 0 1 .26 1.07zm1.048-2.887a.937.937 0 0 1-1.286.313A15.532 15.532 0 0 0 12 9.01a15.53 15.53 0 0 0-5.572 1.022.937.937 0 0 1-.665-1.75A17.407 17.407 0 0 1 12 7.136c2.946 0 5.707.793 8.21 2.353a.937.937 0 0 1 .313 1.286-.005.005 0 0 1-.665-.162z"/></svg>
-      now playing
+  <div class="np-main">
+    <img class="np-art" id="npArt" src="" alt="" onerror="this.style.visibility='hidden'">
+    <div class="np-text">
+      <div class="np-label">
+        <svg viewBox="0 0 24 24"><path d="M12 2C6.477 2 2 6.477 2 12s4.477 10 10 10 10-4.477 10-10S17.523 2 12 2zm4.586 14.424a.622.622 0 0 1-.856.207 10.354 10.354 0 0 0-5.23-1.407 10.36 10.36 0 0 0-3.679.672.622.622 0 1 1-.44-1.163 11.607 11.607 0 0 1 4.119-.753c2.105 0 4.073.57 5.879 1.588a.622.622 0 0 1 .207.856zm1.224-2.724a.78.78 0 0 1-1.07.26 12.942 12.942 0 0 0-6.54-1.76 12.94 12.94 0 0 0-4.61.843.78.78 0 0 1-.55-1.457 14.5 14.5 0 0 1 5.16-.944c2.587 0 5.01.703 7.35 1.987a.78.78 0 0 1 .26 1.07zm1.048-2.887a.937.937 0 0 1-1.286.313A15.532 15.532 0 0 0 12 9.01a15.53 15.53 0 0 0-5.572 1.022.937.937 0 0 1-.665-1.75A17.407 17.407 0 0 1 12 7.136c2.946 0 5.707.793 8.21 2.353a.937.937 0 0 1 .313 1.286-.005.005 0 0 1-.665-.162z"/></svg>
+        now playing
+      </div>
+      <div class="np-song" id="npSong"></div>
+      <div class="np-artist" id="npArtist"></div>
     </div>
-    <div class="np-song" id="npSong"></div>
-    <div class="np-artist" id="npArtist"></div>
+  </div>
+  <div class="np-progress-wrap">
+    <div class="np-progress-bar" id="npProgressBar"></div>
   </div>
 </a>
+
+<!-- live clock -->
+<div class="live-clock" id="liveClock"></div>
 
 <script>
   // ── background gif
@@ -633,27 +678,66 @@
     requestAnimationFrame(animateTrail);
   })();
 
-  // ── 4 & 7. Lanyard (now playing + discord status)
-  // Requires joining discord.gg/lanyard to opt in
+  // ── 7. live clock
+  function tickClock() {
+    document.getElementById("liveClock").textContent =
+      new Date().toLocaleTimeString("en-GB", { hour: "2-digit", minute: "2-digit", second: "2-digit" });
+  }
+  tickClock();
+  setInterval(tickClock, 1000);
+
+  // ── 4 & discord status. Lanyard
   const DISCORD_ID = "1384549535614894162";
+  let npStart = 0, npEnd = 0;
 
   function updateNowPlaying(data) {
     const sp = data.spotify;
     const widget = document.getElementById("nowPlaying");
-    if (!sp) { widget.style.display = "none"; return; }
+    if (!sp) { widget.style.display = "none"; npStart = npEnd = 0; return; }
     document.getElementById("npArt").src = sp.album_art_url || "";
     document.getElementById("npSong").textContent = sp.song || "";
     document.getElementById("npArtist").textContent = sp.artist || "";
     widget.href = sp.track_id ? `https://open.spotify.com/track/${sp.track_id}` : "#";
     widget.style.display = "flex";
+    npStart = sp.timestamps?.start || 0;
+    npEnd   = sp.timestamps?.end   || 0;
+  }
+
+  // ── 3. progress bar animation
+  const npBar = document.getElementById("npProgressBar");
+  (function tickProgress() {
+    if (npStart && npEnd) {
+      const pct = Math.min(100, ((Date.now() - npStart) / (npEnd - npStart)) * 100);
+      npBar.style.width = pct + "%";
+    }
+    requestAnimationFrame(tickProgress);
+  })();
+
+  // ── 8. last seen
+  function timeAgo(ts) {
+    const mins = Math.floor((Date.now() - ts) / 60000);
+    if (mins < 1)  return "just now";
+    if (mins < 60) return `${mins}m ago`;
+    const hrs = Math.floor(mins / 60);
+    if (hrs < 24)  return `${hrs}h ago`;
+    return `${Math.floor(hrs / 24)}d ago`;
   }
 
   function updateDiscordStatus(data) {
     const status = data.discord_status || "offline";
-    const labels = { online: "online", idle: "idle", dnd: "do not disturb", offline: "offline" };
     const dot = document.getElementById("statusDot");
     dot.className = "status-dot " + status;
-    document.getElementById("statusLabel").textContent = labels[status] || "offline";
+
+    if (status !== "offline") {
+      localStorage.setItem("lastSeenOnline", Date.now());
+      const labels = { online: "online", idle: "idle", dnd: "do not disturb" };
+      document.getElementById("statusLabel").textContent = labels[status] || status;
+    } else {
+      const last = localStorage.getItem("lastSeenOnline");
+      document.getElementById("statusLabel").textContent = last
+        ? "last seen " + timeAgo(Number(last))
+        : "offline";
+    }
     document.getElementById("discordStatus").style.display = "flex";
   }
 
@@ -669,13 +753,15 @@
   fetchLanyard();
   setInterval(fetchLanyard, 30000);
 
-  // ── 6. visitor counter
+  // ── 6. visitor counter + 9. milestone glow
   fetch("https://api.counterapi.dev/v1/milo-exe-github-io/main/up")
     .then(r => r.json())
     .then(d => {
       if (!d.count) return;
+      const el = document.getElementById("visitorCounter");
       document.getElementById("visitorCount").textContent = d.count.toLocaleString();
-      document.getElementById("visitorCounter").style.display = "block";
+      el.style.display = "block";
+      if (d.count >= 100) el.classList.add("milestone");
     })
     .catch(() => {});
 </script>
