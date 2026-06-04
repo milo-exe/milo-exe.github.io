@@ -583,18 +583,16 @@
   // ── 1. typing effect
   const bioEl = document.getElementById("bio");
   const bioText = "LyricPresence out now!";
-  let typed = "";
+  const typedSpan = document.createElement("span");
   const cursor = document.createElement("span");
   cursor.className = "bio-cursor";
   cursor.textContent = "|";
+  bioEl.appendChild(typedSpan);
   bioEl.appendChild(cursor);
   let charIndex = 0;
   function typeNext() {
     if (charIndex < bioText.length) {
-      typed += bioText[charIndex++];
-      bioEl.firstChild?.remove();
-      const textNode = document.createTextNode(typed);
-      bioEl.insertBefore(textNode, cursor);
+      typedSpan.textContent += bioText[charIndex++];
       setTimeout(typeNext, 55 + Math.random() * 45);
     } else {
       setTimeout(() => cursor.style.display = "none", 1400);
