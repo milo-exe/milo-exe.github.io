@@ -168,8 +168,31 @@
       color: #ffffff;
       letter-spacing: -1.5px;
       line-height: 1;
-      margin-bottom: 10px;
+      margin-bottom: 8px;
       text-shadow: 0 2px 20px rgba(0,0,0,0.8);
+    }
+
+    /* discord status badge */
+    .discord-status {
+      display: none;
+      align-items: center;
+      gap: 6px;
+      margin-bottom: 10px;
+    }
+    .status-dot {
+      width: 8px;
+      height: 8px;
+      border-radius: 50%;
+      background: #80848e;
+      flex-shrink: 0;
+    }
+    .status-dot.online  { background: #23a55a; box-shadow: 0 0 6px rgba(35,165,90,0.6); }
+    .status-dot.idle    { background: #f0b232; box-shadow: 0 0 6px rgba(240,178,50,0.5); }
+    .status-dot.dnd     { background: #f23f43; box-shadow: 0 0 6px rgba(242,63,67,0.5); }
+    .status-dot.offline { background: #80848e; }
+    .status-label {
+      font-size: 12px;
+      color: rgba(255,255,255,0.4);
     }
 
     /* location */
@@ -189,7 +212,14 @@
       color: rgba(255,255,255,0.5);
       margin-bottom: 28px;
       margin-top: -18px;
+      min-height: 1.2em;
     }
+    .bio-cursor {
+      display: inline-block;
+      color: rgba(255,255,255,0.4);
+      animation: blink 0.7s step-end infinite;
+    }
+    @keyframes blink { 0%,100%{opacity:1} 50%{opacity:0} }
 
     /* socials */
     .socials {
@@ -198,6 +228,7 @@
       margin-bottom: 0;
     }
     .social-btn {
+      position: relative;
       width: 52px;
       height: 52px;
       border-radius: 50%;
@@ -216,6 +247,30 @@
       box-shadow: 0 6px 20px rgba(0,0,0,0.5);
     }
     .social-btn svg { width: 22px; height: 22px; fill: rgba(255,255,255,0.85); }
+
+    /* custom tooltip */
+    .social-tip {
+      position: absolute;
+      bottom: calc(100% + 8px);
+      left: 50%;
+      transform: translateX(-50%);
+      background: rgba(10,10,15,0.9);
+      border: 1px solid rgba(255,255,255,0.1);
+      color: rgba(255,255,255,0.8);
+      font-size: 11px;
+      white-space: nowrap;
+      padding: 4px 10px;
+      border-radius: 6px;
+      pointer-events: none;
+      opacity: 0;
+      transition: opacity 0.15s, transform 0.15s;
+      transform: translateX(-50%) translateY(4px);
+      backdrop-filter: blur(8px);
+    }
+    .social-btn:hover .social-tip {
+      opacity: 1;
+      transform: translateX(-50%) translateY(0);
+    }
 
     /* projects row */
     .projects {
@@ -242,6 +297,15 @@
       color: #fff;
     }
     .proj-chip svg { width: 13px; height: 13px; fill: currentColor; opacity: 0.7; }
+
+    /* visitor counter */
+    .visitor-counter {
+      margin-top: 20px;
+      font-size: 11px;
+      color: rgba(255,255,255,0.22);
+      display: none;
+      letter-spacing: 0.03em;
+    }
 
     /* audio player */
     .audio-player {
@@ -292,6 +356,60 @@
       color: rgba(255,255,255,0.4);
       white-space: nowrap;
     }
+
+    /* now playing widget */
+    .now-playing {
+      position: fixed;
+      bottom: 24px;
+      right: 24px;
+      z-index: 20;
+      display: none;
+      align-items: center;
+      gap: 10px;
+      background: rgba(255,255,255,0.06);
+      border: 1px solid rgba(255,255,255,0.1);
+      border-radius: 14px;
+      padding: 10px 14px 10px 10px;
+      backdrop-filter: blur(12px);
+      max-width: 220px;
+      text-decoration: none;
+      transition: background 0.15s;
+    }
+    .now-playing:hover { background: rgba(255,255,255,0.1); }
+    .np-art {
+      width: 38px;
+      height: 38px;
+      border-radius: 6px;
+      object-fit: cover;
+      flex-shrink: 0;
+      background: rgba(255,255,255,0.08);
+    }
+    .np-text { display: flex; flex-direction: column; gap: 2px; min-width: 0; }
+    .np-label {
+      font-size: 9px;
+      color: rgba(255,255,255,0.3);
+      text-transform: uppercase;
+      letter-spacing: 0.08em;
+      display: flex;
+      align-items: center;
+      gap: 4px;
+    }
+    .np-label svg { width: 9px; height: 9px; fill: #1DB954; flex-shrink: 0; }
+    .np-song {
+      font-size: 12px;
+      font-weight: 600;
+      color: rgba(255,255,255,0.9);
+      white-space: nowrap;
+      overflow: hidden;
+      text-overflow: ellipsis;
+    }
+    .np-artist {
+      font-size: 11px;
+      color: rgba(255,255,255,0.45);
+      white-space: nowrap;
+      overflow: hidden;
+      text-overflow: ellipsis;
+    }
   </style>
 </head>
 <body>
@@ -310,6 +428,9 @@
 
 <!-- generated window lights -->
 <div class="lights" id="lights"></div>
+
+<!-- cursor trail canvas -->
+<canvas id="trailCanvas" style="position:fixed;inset:0;z-index:999;pointer-events:none;"></canvas>
 
 <div class="card">
   <div class="avatar-wrap">
@@ -331,32 +452,39 @@
   <!-- YOUR NAME -->
   <div class="name">milo</div>
 
+  <!-- discord status -->
+  <div class="discord-status" id="discordStatus">
+    <div class="status-dot" id="statusDot"></div>
+    <span class="status-label" id="statusLabel"></span>
+  </div>
+
   <!-- YOUR LOCATION -->
   <div class="location">
     <svg viewBox="0 0 24 24"><path d="M12 2C8.13 2 5 5.13 5 9c0 5.25 7 13 7 13s7-7.75 7-13c0-3.87-3.13-7-7-7zm0 9.5a2.5 2.5 0 1 1 0-5 2.5 2.5 0 0 1 0 5z"/></svg>
     Europe
   </div>
 
-  <div class="bio">
-    LyricPresence out now!
-  </div>
+  <div class="bio" id="bio"></div>
 
   <div class="socials">
     <!-- TikTok -->
-    <a class="social-btn" href="https://tiktok.com/hatinglarps" title="TikTok">
+    <a class="social-btn" href="https://tiktok.com/hatinglarps">
       <svg viewBox="0 0 24 24" fill="rgba(255,255,255,0.85)"><path d="M19.59 6.69a4.83 4.83 0 0 1-3.77-4.25V2h-3.45v13.67a2.89 2.89 0 0 1-2.88 2.5 2.89 2.89 0 0 1-2.89-2.89 2.89 2.89 0 0 1 2.89-2.89c.28 0 .54.04.79.1V9.01a6.33 6.33 0 0 0-.79-.05 6.34 6.34 0 0 0-6.34 6.34 6.34 6.34 0 0 0 6.34 6.34 6.34 6.34 0 0 0 6.33-6.34V8.69a8.18 8.18 0 0 0 4.78 1.52V6.75a4.85 4.85 0 0 1-1.01-.06z"/></svg>
+      <span class="social-tip">TikTok</span>
     </a>
     <!-- Discord -->
-    <a class="social-btn" href="https://discord.com/users/1384549535614894162" title="Discord">
+    <a class="social-btn" href="https://discord.com/users/1384549535614894162">
       <svg viewBox="0 0 24 24"><path d="M20.317 4.37a19.791 19.791 0 0 0-4.885-1.515.074.074 0 0 0-.079.037c-.21.375-.444.864-.608 1.25a18.27 18.27 0 0 0-5.487 0 12.64 12.64 0 0 0-.617-1.25.077.077 0 0 0-.079-.037A19.736 19.736 0 0 0 3.677 4.37a.07.07 0 0 0-.032.027C.533 9.046-.32 13.58.099 18.057a.082.082 0 0 0 .031.057 19.9 19.9 0 0 0 5.993 3.03.078.078 0 0 0 .084-.028c.462-.63.874-1.295 1.226-1.994a.076.076 0 0 0-.041-.106 13.107 13.107 0 0 1-1.872-.892.077.077 0 0 1-.008-.128 10.2 10.2 0 0 0 .372-.292.074.074 0 0 1 .077-.01c3.928 1.793 8.18 1.793 12.062 0a.074.074 0 0 1 .078.01c.12.098.246.198.373.292a.077.077 0 0 1-.006.127 12.299 12.299 0 0 1-1.873.892.077.077 0 0 0-.041.107c.36.698.772 1.362 1.225 1.993a.076.076 0 0 0 .084.028 19.839 19.839 0 0 0 6.002-3.03.077.077 0 0 0 .032-.054c.5-5.177-.838-9.674-3.549-13.66a.061.061 0 0 0-.031-.03zM8.02 15.33c-1.183 0-2.157-1.085-2.157-2.419 0-1.333.956-2.419 2.157-2.419 1.21 0 2.176 1.096 2.157 2.42 0 1.333-.956 2.418-2.157 2.418zm7.975 0c-1.183 0-2.157-1.085-2.157-2.419 0-1.333.955-2.419 2.157-2.419 1.21 0 2.176 1.096 2.157 2.42 0 1.333-.946 2.418-2.157 2.418z"/></svg>
+      <span class="social-tip">Discord</span>
     </a>
-    <!-- Email — change to your address -->
-    <a class="social-btn" href="mailto:legally@europe.com" title="Email">
+    <!-- Email -->
+    <a class="social-btn" href="mailto:legally@europe.com">
       <svg viewBox="0 0 24 24"><path d="M20 4H4a2 2 0 0 0-2 2v12a2 2 0 0 0 2 2h16a2 2 0 0 0 2-2V6a2 2 0 0 0-2-2zm0 4-8 5-8-5V6l8 5 8-5v2z"/></svg>
+      <span class="social-tip">Email</span>
     </a>
   </div>
 
-  <!-- PROJECT CHIPS — change hrefs or add/remove chips as needed -->
+  <!-- PROJECT CHIPS -->
   <div class="projects">
     <a class="proj-chip" href="lyricpresence">
       <svg viewBox="0 0 24 24"><path d="M9 18V5l12-2v13M6 21a3 3 0 1 0 0-6 3 3 0 0 0 0 6zm12-2a3 3 0 1 0 0-6 3 3 0 0 0 0 6z" stroke="currentColor" stroke-width="1.5" fill="none" stroke-linecap="round" stroke-linejoin="round"/></svg>
@@ -366,6 +494,11 @@
       <svg viewBox="0 0 24 24"><path d="M12 2C6.477 2 2 6.477 2 12c0 4.418 2.865 8.166 6.839 9.489.5.092.682-.217.682-.482 0-.237-.009-.868-.013-1.703-2.782.604-3.369-1.342-3.369-1.342-.454-1.155-1.11-1.462-1.11-1.462-.908-.62.069-.608.069-.608 1.003.07 1.531 1.03 1.531 1.03.892 1.529 2.341 1.087 2.91.831.092-.646.35-1.086.636-1.336-2.22-.253-4.555-1.11-4.555-4.943 0-1.091.39-1.984 1.029-2.683-.103-.253-.446-1.27.098-2.647 0 0 .84-.269 2.75 1.025A9.578 9.578 0 0 1 12 6.836a9.59 9.59 0 0 1 2.504.337c1.909-1.294 2.747-1.025 2.747-1.025.546 1.377.202 2.394.1 2.647.64.699 1.028 1.592 1.028 2.683 0 3.842-2.339 4.687-4.566 4.935.359.309.678.919.678 1.852 0 1.336-.012 2.415-.012 2.741 0 .267.18.578.688.48C19.138 20.163 22 16.418 22 12c0-5.523-4.477-10-10-10z"/></svg>
       GitHub
     </a>
+  </div>
+
+  <!-- visitor counter -->
+  <div class="visitor-counter" id="visitorCounter">
+    <span id="visitorCount">0</span> visitors
   </div>
 </div>
 
@@ -385,8 +518,21 @@
   <span class="audio-label">music</span>
 </div>
 
+<!-- now playing widget -->
+<a class="now-playing" id="nowPlaying" href="#" target="_blank" rel="noopener">
+  <img class="np-art" id="npArt" src="" alt="">
+  <div class="np-text">
+    <div class="np-label">
+      <svg viewBox="0 0 24 24"><path d="M12 2C6.477 2 2 6.477 2 12s4.477 10 10 10 10-4.477 10-10S17.523 2 12 2zm4.586 14.424a.622.622 0 0 1-.856.207 10.354 10.354 0 0 0-5.23-1.407 10.36 10.36 0 0 0-3.679.672.622.622 0 1 1-.44-1.163 11.607 11.607 0 0 1 4.119-.753c2.105 0 4.073.57 5.879 1.588a.622.622 0 0 1 .207.856zm1.224-2.724a.78.78 0 0 1-1.07.26 12.942 12.942 0 0 0-6.54-1.76 12.94 12.94 0 0 0-4.61.843.78.78 0 0 1-.55-1.457 14.5 14.5 0 0 1 5.16-.944c2.587 0 5.01.703 7.35 1.987a.78.78 0 0 1 .26 1.07zm1.048-2.887a.937.937 0 0 1-1.286.313A15.532 15.532 0 0 0 12 9.01a15.53 15.53 0 0 0-5.572 1.022.937.937 0 0 1-.665-1.75A17.407 17.407 0 0 1 12 7.136c2.946 0 5.707.793 8.21 2.353a.937.937 0 0 1 .313 1.286-.005.005 0 0 1-.665-.162z"/></svg>
+      now playing
+    </div>
+    <div class="np-song" id="npSong"></div>
+    <div class="np-artist" id="npArtist"></div>
+  </div>
+</a>
+
 <script>
-  // background gif — hide fallback if a src is set and loads
+  // ── background gif
   const bgGif = document.getElementById("bgGif");
   const bgFallback = document.getElementById("bgFallback");
   if (bgGif.src && bgGif.src !== window.location.href) {
@@ -396,7 +542,7 @@
     bgGif.style.display = "none";
   }
 
-  // pfp gif — hide fallback svg if a src is set and loads
+  // ── pfp gif
   const pfpImg = document.getElementById("pfpImg");
   const pfpFallback = document.getElementById("pfpFallback");
   if (pfpImg.src && pfpImg.src !== window.location.href) {
@@ -406,7 +552,7 @@
     pfpImg.style.display = "none";
   }
 
-  // audio player
+  // ── audio player
   const bgAudio = document.getElementById("bgAudio");
   const audioPlayer = document.getElementById("audioPlayer");
   if (bgAudio.src && bgAudio.src !== window.location.href) {
@@ -426,13 +572,114 @@
   }
   function setVolume(v) { bgAudio.volume = v; }
 
-  // scatter tiny window-light rectangles across the lower half
+  // ── window lights
   const container = document.getElementById("lights");
   for (let i = 0; i < 120; i++) {
     const el = document.createElement("span");
     el.style.cssText = `left:${Math.random()*100}%;top:${40+Math.random()*55}%;width:${1+Math.random()*2}px;height:${1+Math.random()*3}px;opacity:${0.15+Math.random()*0.5};`;
     container.appendChild(el);
   }
+
+  // ── 1. typing effect
+  const bioEl = document.getElementById("bio");
+  const bioText = "LyricPresence out now!";
+  let typed = "";
+  const cursor = document.createElement("span");
+  cursor.className = "bio-cursor";
+  cursor.textContent = "|";
+  bioEl.appendChild(cursor);
+  let charIndex = 0;
+  function typeNext() {
+    if (charIndex < bioText.length) {
+      typed += bioText[charIndex++];
+      bioEl.firstChild?.remove();
+      const textNode = document.createTextNode(typed);
+      bioEl.insertBefore(textNode, cursor);
+      setTimeout(typeNext, 55 + Math.random() * 45);
+    } else {
+      setTimeout(() => cursor.style.display = "none", 1400);
+    }
+  }
+  setTimeout(typeNext, 700);
+
+  // ── 2. cursor trail
+  const canvas = document.getElementById("trailCanvas");
+  const ctx = canvas.getContext("2d");
+  function resizeCanvas() { canvas.width = window.innerWidth; canvas.height = window.innerHeight; }
+  resizeCanvas();
+  window.addEventListener("resize", resizeCanvas);
+
+  const particles = [];
+  window.addEventListener("mousemove", e => {
+    for (let i = 0; i < 4; i++) {
+      particles.push({
+        x: e.clientX, y: e.clientY,
+        r: Math.random() * 2.5 + 0.5,
+        a: 0.6 + Math.random() * 0.2,
+        vx: (Math.random() - 0.5) * 1.8,
+        vy: (Math.random() - 0.5) * 1.8 - 0.4
+      });
+    }
+  });
+  (function animateTrail() {
+    ctx.clearRect(0, 0, canvas.width, canvas.height);
+    for (let i = particles.length - 1; i >= 0; i--) {
+      const p = particles[i];
+      p.x += p.vx; p.y += p.vy; p.a -= 0.025; p.r *= 0.97;
+      if (p.a <= 0) { particles.splice(i, 1); continue; }
+      ctx.beginPath();
+      ctx.arc(p.x, p.y, p.r, 0, Math.PI * 2);
+      ctx.fillStyle = `rgba(255,255,255,${p.a})`;
+      ctx.fill();
+    }
+    requestAnimationFrame(animateTrail);
+  })();
+
+  // ── 4 & 7. Lanyard (now playing + discord status)
+  // Requires joining discord.gg/lanyard to opt in
+  const DISCORD_ID = "1384549535614894162";
+
+  function updateNowPlaying(data) {
+    const sp = data.spotify;
+    const widget = document.getElementById("nowPlaying");
+    if (!sp) { widget.style.display = "none"; return; }
+    document.getElementById("npArt").src = sp.album_art_url || "";
+    document.getElementById("npSong").textContent = sp.song || "";
+    document.getElementById("npArtist").textContent = sp.artist || "";
+    widget.href = sp.track_id ? `https://open.spotify.com/track/${sp.track_id}` : "#";
+    widget.style.display = "flex";
+  }
+
+  function updateDiscordStatus(data) {
+    const status = data.discord_status || "offline";
+    const labels = { online: "online", idle: "idle", dnd: "do not disturb", offline: "offline" };
+    const dot = document.getElementById("statusDot");
+    dot.className = "status-dot " + status;
+    document.getElementById("statusLabel").textContent = labels[status] || "offline";
+    document.getElementById("discordStatus").style.display = "flex";
+  }
+
+  async function fetchLanyard() {
+    try {
+      const res = await fetch(`https://api.lanyard.rest/v1/users/${DISCORD_ID}`);
+      if (!res.ok) return;
+      const json = await res.json();
+      updateNowPlaying(json.data);
+      updateDiscordStatus(json.data);
+    } catch(e) {}
+  }
+  fetchLanyard();
+  setInterval(fetchLanyard, 30000);
+
+  // ── 6. visitor counter
+  fetch("https://api.counterapi.dev/v1/milo-exe-github-io/main/up")
+    .then(r => r.json())
+    .then(d => {
+      if (!d.count) return;
+      document.getElementById("visitorCount").textContent = d.count.toLocaleString();
+      document.getElementById("visitorCounter").style.display = "block";
+    })
+    .catch(() => {});
 </script>
 </body>
 </html>
